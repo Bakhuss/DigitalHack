@@ -19,6 +19,7 @@ public class MaterialService {
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cookie", "profile_type=demo");
+        headers.add("Access-Control-Allow-Origin", "*");
         HttpEntity<String> entity = new HttpEntity<>("body", headers);
         ResponseEntity<String> exchange = template.exchange(url, HttpMethod.GET, entity, String.class, new HashMap<>());
         return exchange.getBody();
