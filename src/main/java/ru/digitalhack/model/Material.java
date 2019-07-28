@@ -27,4 +27,5 @@ public class Material {
     String book_id;
     String version;
     Cover cover;
+    String subject;
 }
