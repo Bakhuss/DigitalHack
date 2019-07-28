@@ -36,6 +36,11 @@ public class MaterialService {
 
     public List<Material> getMaterialsWithSubject(String page, String pageSize) {
         String url = "https://uchebnik.mos.ru/cms/api/materials?";
+
+        if (page != null) url += "&page=" + page;
+        if (pageSize != null) url += "&per_page=" + pageSize;
+        log.info(url);
+
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cookie", "profile_type=demo");
