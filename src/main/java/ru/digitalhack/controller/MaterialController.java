@@ -25,6 +25,6 @@ public class MaterialController {
     @GetMapping(value = "/materials")
     public List<Material> getMaterials(@RequestParam(required = false) String pageSize,
                                        @RequestParam(required = false) String page) {
-        return materialService.getMaterialsWithSubject(page, pageSize);
+        return materialService.getMaterialsWithSubject(pageSize, page);
     }
 }

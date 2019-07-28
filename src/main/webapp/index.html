@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<head>
+	<meta charset="UTF-8">
+	<!-- Vue.js CDN -->
+	<script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+
+	<!-- UIkit CSS -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.1.6/css/uikit.min.css" />
+
+	<!-- UIkit JS -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.1.6/js/uikit.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.1.6/js/uikit-icons.min.js"></script>
+
+	<!-- Custom CSS -->
+	<link rel="stylesheet" type="text/css" href="src/style.css">
+
+	<!-- JQuery JS -->
+	<script
+	    src="https://code.jquery.com/jquery-3.4.1.min.js"
+	    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+	    crossorigin="anonymous">
+	</script>
+
+</head>
+
+<body>
+	<div id="recommender-app" class="uk-container">
+		<div class="uk-grid uk-child-width-1-2">
+			<div>	
+				<h3>Когда будут занятия</h3>
+				<div class="uk-grid uk-child-width-1-3">
+					<form class="uk-form">
+					    <input 
+					    	type="text" 
+					    	data-uk-datepicker="{format:'DD.MM.YYYY'}"
+					    	placeholder="С какого числа">
+					</form>
+					<form class="uk-form">
+					    <input 
+					    	type="text" 
+					    	data-uk-datepicker="{format:'DD.MM.YYYY'}"
+					    	placeholder="По какое число">
+					</form>
+				</div>
+			</div>
+
+			<div>
+				<h3>Предмет</h3>
+				<ul id="my-id" class="uk-subnav uk-subnav-pill">
+				    <li v-for="subject in subjectList" :data-uk-filter="subject" >
+				    	{{ subject }}
+				    </li>
+				</ul>
+			</div>
+		</div>
+		
+		<h3>Что нужно выучить</h2>
+		<div class="material-list uk-grid uk-child-width-1-4@m">
+			<material
+				v-for="material in materialList"	
+			    v-bind:key="material.id"
+				v-bind:material="material"
+				v-bind:class="[{ 'data-uk-filter': material.subject }]">
+			</material>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+		Vue.component('material', {
+
+			props: ['material'],
+			data: function () {
+				return {
+					imageSource: 'https://uchebnik.mos.ru/' + this.material.cover.path
+				};
+			},
+
+			computed: {
+				link: function () {
+					let type_ref = this.material.material_type.replace(/([a-z])([A-Z])/g, '$1_$2'); 
+					return `https://uchebnik.mos.ru/catalogue/material_view/${ type_ref }/${ this.material.material_id }`
+				},
+
+				total_votes: function () {
+					let votes = this.material.user_votes;
+					let total_votes = 0;
+
+					for (prop in votes) {
+						total_votes += Number(votes[prop]);
+					}
+					console.dir(total_votes)
+					return total_votes;
+				},
+
+				// Свойство-рыба для оторбражения "своих" материалов
+				selfTeacherFlg: function () {
+					return (Math.random() < 0.3);
+				},
+
+				// Свойство-рыба для отрисовки рейтинга
+				rating: function () {
+					let ratingValue = (this.total_votes < 10) || (!this.material.average_rating) ? 
+						'Мало оценок' : Math.round(this.material.average_rating * 10) / 10;
+
+					let ratingClass;
+					if (ratingValue == 'Мало оценок') {
+						ratingClass = 'uk-label';
+					} else if (ratingValue < 3.5) {
+						ratingClass = 'uk-label-danger';
+					} else if (ratingValue < 4.5) {
+						ratingClass = 'uk-label-warning';
+					} else {
+						ratingClass = 'uk-label-success';
+					}
+
+					return { ratingValue, ratingClass };
+				} 
+
+			},
+
+			template: `
+				<div> 
+					<a class="uk-link-toggle" v-bind:href="link">
+						<div class="uk-card uk-card-default uk-card-hover uk-card-small material-card"> 
+							<div class="uk-card-media-top card-image"> 
+								<img v-bind:src="imageSource"> 
+								</div> 
+							<div class="uk-card-body"> 
+								<h3 class="uk-card-title uk-link-heading">{{ material.title }}</h3> 
+								<p>{{ material.description }}</p> 
+							</div>
+							<div class="uk-card-footer">
+								<div :class="[rating.ratingClass, 'uk-container-center']"> 
+									<span v-if="rating.ratingValue != 'Мало оценок'">
+										Средний рейтинг:
+									</span> 
+									{{ rating.ratingValue }}
+								</div>
+								<div class="uk-label uk-container-center" v-if="selfTeacherFlg">
+									<span>Материал от твоего учителя</span
+								</div>
+							</div>
+						</div>
+					</a> 
+				</div>
+				`
+			}
+		)
+
+		fetch('http://digitalhack.bakhuss.ru/materials')
+			.then(
+				function(response) {
+				    return response.json();
+			})
+			.then(
+				function (materials) {
+					materials = materials.sort((a, b) => {
+							if (a.average_rating > b.average_rating) {
+								return -1;
+							} else if (a.average_rating == b.average_rating) {
+								return 0;
+							} else {
+								return 1;
+							}
+						}
+					)
+
+					vm = new Vue({
+						el: '#recommender-app',
+						data: {
+							materialList: materials
+						},
+						computed: {
+							subjectList: function () {
+								let subjects = new Set();
+
+								this.materialList.forEach(material => {
+									subjects.add(material.subject)
+								});
+
+								return subjects;
+							}
+						}
+					})
+				}
+			)
+		
+	</script>
+</body>

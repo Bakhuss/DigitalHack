@@ -1,0 +1,39 @@
+.material-list {
+	align-content: center;
+	text-decoration: none;
+}
+
+.material-card {
+	box-shadow: 0 12px 12px 0 rgba(0, 0, 0, 0.06);
+}
+
+.material-card:hover {
+	box-shadow: 0 25px 25px 0 rgba(0, 0, 0, 0.06);
+	margin-bottom: 30px;
+	margin-top: 30px;
+}
+
+.material-card:hover .card-title {
+	color: #8b0000;
+}
+
+.material-body {
+	color: black;
+}
+
+.material-card {
+	max-width: 300px;
+	margin-bottom: 20px; 
+}
+
+[class*=uk-label] {
+	padding: 5px;
+	text-align: center;
+	border-radius: 3px;
+	text-transform: none;
+	margin: 5px;
+}
+
+.uk-card-footer {
+	align-content: center;
+}
